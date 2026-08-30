@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.maks.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Maks</name>
+    <description>
+        App Maks — envie um .zip e gere um .apk.
+    </description>
+    <author email="voce@email.com" href="https://cordova.apache.org">
+        Você
+    </author>
+    <content src="index.html" />
+    <access origin="*" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <preference name="Orientation" value="portrait" />
+    <preference name="AndroidWindowSplashScreenAnimatedIcon" value="res/icon.png" />
+    <icon src="res/icon.png" />
+    <icon density="ldpi" src="res/icon.png" />
+    <icon density="mdpi" src="res/icon.png" />
+    <icon density="hdpi" src="res/icon.png" />
+    <icon density="xhdpi" src="res/icon.png" />
+    <icon density="xxhdpi" src="res/icon.png" />
+    <icon density="xxxhdpi" src="res/icon.png" />
+    <platform name="android">
+        <allow-intent href="market:*" />
+        <preference name="AndroidXEnabled" value="true" />
+    </platform>
+</widget>
