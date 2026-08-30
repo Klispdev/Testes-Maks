@@ -1,0 +1,102 @@
+name: Build APK from uploaded zip
+
+on:
+  push:
+    paths:
+      - 'uploads/**.zip'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Preparando ambiente
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Revisando comandos
+        id: find
+        run: |
+          FILE=$(git diff --name-only HEAD~1 HEAD -- 'uploads/*.zip' | tail -n1)
+          if [ -z "$FILE" ]; then
+            FILE=$(ls -t uploads/*.zip | head -n1)
+          fi
+          JOBID=$(basename "$FILE" .zip)
+          echo "Arquivo: $FILE  |  job id: $JOBID"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          echo "jobid=$JOBID" >> "$GITHUB_OUTPUT"
+
+      - name: Extraindo arquivos
+        run: |
+          rm -rf www www_extract
+          mkdir -p www_extract
+          unzip -o "${{ steps.find.outputs.file }}" -d www_extract
+          # se o zip tiver uma única pasta raiz, usa o conteúdo dela como www/
+          COUNT=$(ls www_extract | wc -l)
+          if [ "$COUNT" = "1" ] && [ -d "www_extract/$(ls www_extract)" ]; then
+            mv "www_extract/$(ls www_extract)" www
+          else
+            mv www_extract www
+          fi
+          ls -la www
+
+      - name: Configurando Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Configurando Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Configurando Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalando ferramentas
+        run: npm install -g cordova
+
+      - name: Preparando plataforma Android
+        run: cordova platform add android
+
+      - name: Compilando APK
+        run: cordova build android --debug
+
+      - name: Localizando APK gerado
+        id: apk
+        run: |
+          EXPECTED="platforms/android/app/build/outputs/apk/debug/app-debug.apk"
+          if [ -f "$EXPECTED" ]; then
+            APK="$EXPECTED"
+          else
+            APK=$(find platforms/android -path "*/outputs/apk/*" -name "*.apk" | head -n1)
+          fi
+          if [ -z "$APK" ] || [ ! -f "$APK" ]; then
+            echo "Nenhum .apk encontrado em platforms/android/**/outputs/apk/"
+            exit 1
+          fi
+          echo "APK gerado: $APK"
+          cp "$APK" "app-${{ steps.find.outputs.jobid }}.apk"
+          echo "path=app-${{ steps.find.outputs.jobid }}.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Publicando o APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.find.outputs.jobid }}
+          name: Build ${{ steps.find.outputs.jobid }}
+          files: ${{ steps.apk.outputs.path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Finalizando
+        run: |
+          git config user.name "maks-bot"
+          git config user.email "maks-bot@users.noreply.github.com"
+          git rm "${{ steps.find.outputs.file }}"
+          git commit -m "chore: remove processed upload [skip ci]"
+          git push
