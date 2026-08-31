@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.maks.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-    <name>Maks</name>
+<widget id="p1788214827660c82tg" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>nexo-app</name>
     <description>
-        App Maks — envie um .zip e gere um .apk.
+        Gerado pelo Maks.
     </description>
     <author email="voce@email.com" href="https://cordova.apache.org">
-        Você
+        Voce
     </author>
     <content src="index.html" />
     <access origin="*" />
